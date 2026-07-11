@@ -1,0 +1,45 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshCommander.Server", "src\MeshCommander.Server\MeshCommander.Server.csproj", "{7BB8F4CF-32E0-46B8-BF54-1AF72846F891}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshCommander.Server.Tests", "src\MeshCommander.Server.Tests\MeshCommander.Server.Tests.csproj", "{DE047307-3C67-4078-AF23-2354E5C44628}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshCommander.Desktop.Shared", "src\MeshCommander.Desktop.Shared\MeshCommander.Desktop.Shared.csproj", "{2CF90956-C49F-49E6-8312-448671BB8A36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshCommander.Desktop", "src\MeshCommander.Desktop\MeshCommander.Desktop.csproj", "{490C599E-D6F5-4F24-A9F7-70D3E1C48FE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshCommander.Windows", "src\MeshCommander.Windows\MeshCommander.Windows.csproj", "{9E7AECC6-A967-42B3-8423-1BB63BADE919}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7BB8F4CF-32E0-46B8-BF54-1AF72846F891}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BB8F4CF-32E0-46B8-BF54-1AF72846F891}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BB8F4CF-32E0-46B8-BF54-1AF72846F891}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BB8F4CF-32E0-46B8-BF54-1AF72846F891}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE047307-3C67-4078-AF23-2354E5C44628}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE047307-3C67-4078-AF23-2354E5C44628}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE047307-3C67-4078-AF23-2354E5C44628}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE047307-3C67-4078-AF23-2354E5C44628}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CF90956-C49F-49E6-8312-448671BB8A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CF90956-C49F-49E6-8312-448671BB8A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CF90956-C49F-49E6-8312-448671BB8A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CF90956-C49F-49E6-8312-448671BB8A36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{490C599E-D6F5-4F24-A9F7-70D3E1C48FE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{490C599E-D6F5-4F24-A9F7-70D3E1C48FE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{490C599E-D6F5-4F24-A9F7-70D3E1C48FE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{490C599E-D6F5-4F24-A9F7-70D3E1C48FE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E7AECC6-A967-42B3-8423-1BB63BADE919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E7AECC6-A967-42B3-8423-1BB63BADE919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E7AECC6-A967-42B3-8423-1BB63BADE919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E7AECC6-A967-42B3-8423-1BB63BADE919}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

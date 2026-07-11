@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>MeshCommander.Enhanced.Desktop</AssemblyName>
+    <RootNamespace>MeshCommander.Desktop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Photino.NET" Version="3.1.18" />
+    <ProjectReference Include="..\MeshCommander.Desktop.Shared\MeshCommander.Desktop.Shared.csproj" />
+  </ItemGroup>
+</Project>

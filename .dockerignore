@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+bin
+obj
+**/bin
+**/obj
+src/MeshCommander.Server/wwwroot
+artifacts
+*.nupkg
+*.snupkg

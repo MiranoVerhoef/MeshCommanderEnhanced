@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>MeshCommander.Server</AssemblyName>
+  </PropertyGroup>
+
+  <Target Name="BuildWebAssets" BeforeTargets="BeforeBuild" Condition="'$(SkipWebBuild)' != 'true'">
+    <Exec Command="node ../../tools/build-web.mjs" WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+</Project>

@@ -1,0 +1,18 @@
+services:
+  meshcommander-enhanced:
+    build: .
+    image: meshcommander-enhanced:local
+    ports:
+      - "3000:3000"
+    environment:
+      MCE_ADMIN_TOKEN: "change-this-before-use"
+      MCE_ALLOWED_TARGETS: "private"
+      MCE_ALLOW_UNTRUSTED_AMT_TLS: "true"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped

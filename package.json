@@ -13,6 +13,13 @@
     "Manageability Commander"
   ],
   "single-instance": false,
+  "scripts": {
+    "build:web": "node tools/build-web.mjs",
+    "test:web": "node --test tools/tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "window": {
     "icon": "favicon.png",
     "toolbar": false,

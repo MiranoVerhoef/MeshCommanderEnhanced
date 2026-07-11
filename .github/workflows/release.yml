@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rid: [linux-x64, linux-arm64, osx-x64, osx-arm64, win-x64, win-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet publish src/MeshCommander.Server/MeshCommander.Server.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/server-${{ matrix.rid }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meshcommander-enhanced-server-${{ matrix.rid }}
+          path: artifacts/server-${{ matrix.rid }}
+
+  desktop:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            project: src/MeshCommander.Desktop/MeshCommander.Desktop.csproj
+          - os: macos-14
+            rid: osx-arm64
+            project: src/MeshCommander.Desktop/MeshCommander.Desktop.csproj
+          - os: windows-latest
+            rid: win-x64
+            project: src/MeshCommander.Windows/MeshCommander.Windows.csproj
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Publish desktop shell
+        run: dotnet publish ${{ matrix.project }} -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/app
+      - name: Publish server sidecar
+        run: dotnet publish src/MeshCommander.Server/MeshCommander.Server.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/app/server
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meshcommander-enhanced-desktop-${{ matrix.rid }}
+          path: artifacts/app
