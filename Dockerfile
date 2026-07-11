@@ -1,14 +1,6 @@
 FROM node:22-bookworm-slim AS web
 WORKDIR /src
-COPY package*.json ./
-COPY tools ./tools
-COPY modern ./modern
-COPY *.html *.css *.js *.png *.gif *.ico *.svg ./
-COPY forge.js ./forge.js
-COPY images ./images
-COPY images-commander ./images-commander
-COPY pki.js ./pki.js
-COPY trustedCA ./trustedCA
+COPY . .
 RUN npm run test:web && npm run build:web
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
