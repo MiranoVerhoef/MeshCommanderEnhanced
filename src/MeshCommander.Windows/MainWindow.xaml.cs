@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using MeshCommander.Desktop.Shared;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 
 namespace MeshCommander.Windows;
@@ -8,16 +9,55 @@ namespace MeshCommander.Windows;
 public sealed partial class MainWindow : Window
 {
     private readonly SidecarLauncher sidecar = new();
-    private readonly Microsoft.UI.Xaml.Controls.WebView2 browser = new()
+    private readonly WebView2 browser = new()
     {
         Visibility = Visibility.Collapsed
+    };
+    private readonly ProgressRing progress = new()
+    {
+        IsActive = true,
+        Width = 36,
+        Height = 36
+    };
+    private readonly TextBlock statusText = new()
+    {
+        Text = "Starting MeshCommander Enhanced…",
+        FontSize = 16,
+        TextAlignment = TextAlignment.Center
+    };
+    private readonly TextBlock errorText = new()
+    {
+        MaxWidth = 640,
+        TextWrapping = TextWrapping.Wrap,
+        TextAlignment = TextAlignment.Center,
+        Visibility = Visibility.Collapsed
+    };
+    private readonly Button openLogButton = new()
+    {
+        Content = "Open diagnostic log",
+        HorizontalAlignment = HorizontalAlignment.Center,
+        Visibility = Visibility.Collapsed
+    };
+    private readonly StackPanel statusPanel = new()
+    {
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center,
+        Spacing = 12
     };
     private bool initialized;
 
     public MainWindow()
     {
-        InitializeComponent();
-        Root.Children.Insert(0, browser);
+        var root = new Grid();
+        statusPanel.Children.Add(progress);
+        statusPanel.Children.Add(statusText);
+        statusPanel.Children.Add(errorText);
+        statusPanel.Children.Add(openLogButton);
+        root.Children.Add(browser);
+        root.Children.Add(statusPanel);
+        Content = root;
+
+        openLogButton.Click += OpenLogButton_Click;
         Title = "MeshCommander Enhanced";
         Activated += OnActivated;
         Closed += OnClosed;
@@ -55,17 +95,17 @@ public sealed partial class MainWindow : Window
                 DesktopDiagnostics.Write($"WebView2 process failed: {eventArgs.ProcessFailedKind}.");
             browser.Source = url;
             browser.Visibility = Visibility.Visible;
-            StatusPanel.Visibility = Visibility.Collapsed;
+            statusPanel.Visibility = Visibility.Collapsed;
             DesktopDiagnostics.Write("Desktop startup completed.");
         }
         catch (Exception exception)
         {
             DesktopDiagnostics.Write(exception);
-            Progress.IsActive = false;
-            StatusText.Text = "MeshCommander Enhanced could not start";
-            ErrorText.Text = exception.Message;
-            ErrorText.Visibility = Visibility.Visible;
-            OpenLogButton.Visibility = Visibility.Visible;
+            progress.IsActive = false;
+            statusText.Text = "MeshCommander Enhanced could not start";
+            errorText.Text = exception.Message;
+            errorText.Visibility = Visibility.Visible;
+            openLogButton.Visibility = Visibility.Visible;
         }
     }
 
