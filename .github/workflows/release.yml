@@ -6,6 +6,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   server:
     runs-on: ubuntu-latest
@@ -20,11 +23,18 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet publish src/MeshCommander.Server/MeshCommander.Server.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/server-${{ matrix.rid }}
+      - name: Publish server
+        run: dotnet publish src/MeshCommander.Server/MeshCommander.Server.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/server-${{ matrix.rid }}
+      - name: Package server
+        shell: bash
+        run: |
+          cd artifacts/server-${{ matrix.rid }}
+          zip -r ../meshcommander-enhanced-server-${{ matrix.rid }}.zip .
       - uses: actions/upload-artifact@v4
         with:
           name: meshcommander-enhanced-server-${{ matrix.rid }}
-          path: artifacts/server-${{ matrix.rid }}
+          path: artifacts/meshcommander-enhanced-server-${{ matrix.rid }}.zip
+          if-no-files-found: error
 
   desktop:
     runs-on: ${{ matrix.os }}
@@ -48,11 +58,43 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - uses: microsoft/setup-msbuild@v2
+        if: runner.os == 'Windows'
       - name: Publish desktop shell
+        if: runner.os != 'Windows'
         run: dotnet publish ${{ matrix.project }} -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/app
+      - name: Publish WinUI shell
+        if: runner.os == 'Windows'
+        run: msbuild ${{ matrix.project }} /restore /t:Publish /p:Configuration=Release /p:RuntimeIdentifier=${{ matrix.rid }} /p:SelfContained=true /p:PublishDir=${{ github.workspace }}\artifacts\app\
       - name: Publish server sidecar
         run: dotnet publish src/MeshCommander.Server/MeshCommander.Server.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/app/server
+      - name: Package desktop shell
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cd artifacts/app
+          zip -r ../meshcommander-enhanced-desktop-${{ matrix.rid }}.zip .
+      - name: Package Windows desktop shell
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/meshcommander-enhanced-desktop-${{ matrix.rid }}.zip
       - uses: actions/upload-artifact@v4
         with:
           name: meshcommander-enhanced-desktop-${{ matrix.rid }}
-          path: artifacts/app
+          path: artifacts/meshcommander-enhanced-desktop-${{ matrix.rid }}.zip
+          if-no-files-found: error
+
+  github-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [server, desktop]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: meshcommander-enhanced-*
+          path: release-assets
+          merge-multiple: true
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" release-assets/*.zip --repo "${GITHUB_REPOSITORY}" --verify-tag --generate-notes --title "MeshCommander Enhanced ${GITHUB_REF_NAME}"

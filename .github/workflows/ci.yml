@@ -38,7 +38,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet build src/MeshCommander.Windows/MeshCommander.Windows.csproj -c Release
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build WinUI shell
+        run: msbuild src/MeshCommander.Windows/MeshCommander.Windows.csproj /restore /p:Configuration=Release
 
   docker:
     runs-on: ubuntu-latest
