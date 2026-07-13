@@ -60,6 +60,9 @@ jobs:
           dotnet-version: 8.0.x
       - uses: microsoft/setup-msbuild@v3
         if: runner.os == 'Windows'
+      - name: Install Linux packaging dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y imagemagick libgtk-3-0 libwebkit2gtk-4.1-0 xvfb
       - name: Publish desktop shell
         if: runner.os != 'Windows'
         run: dotnet publish ${{ matrix.project }} -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/app
@@ -78,10 +81,81 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/meshcommander-enhanced-desktop-${{ matrix.rid }}.zip
+      - name: Build Linux installer
+        if: runner.os == 'Linux'
+        shell: bash
+        run: bash packaging/linux/build-deb.sh artifacts/app artifacts 0.2.0
+      - name: Build macOS installer
+        if: runner.os == 'macOS'
+        shell: bash
+        run: bash packaging/macos/build-dmg.sh artifacts/app artifacts 0.2.0
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install innosetup --version=6.7.1 --no-progress -y
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          & $iscc packaging\windows\MeshCommanderEnhanced.iss "/DMyAppVersion=0.2.0" "/DSourceDir=${{ github.workspace }}\artifacts\app" "/DOutputDir=${{ github.workspace }}\artifacts"
+      - name: Smoke-test Linux installer
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo dpkg -i artifacts/meshcommander-enhanced-linux-x64.deb
+          xvfb-run -a meshcommander-enhanced >artifacts/linux-smoke.log 2>&1 &
+          app_pid=$!
+          trap 'kill ${app_pid} 2>/dev/null || true; pkill -f MeshCommander.Server || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:16990/healthz | grep -q 'MeshCommander Enhanced'; then exit 0; fi
+            sleep 1
+          done
+          cat artifacts/linux-smoke.log
+          exit 1
+      - name: Verify macOS installer
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          codesign --verify --deep --strict "artifacts/MeshCommander Enhanced.app"
+          hdiutil verify artifacts/meshcommander-enhanced-macos-arm64.dmg
+      - name: Smoke-test Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $setup = Resolve-Path artifacts\meshcommander-enhanced-windows-x64-setup.exe
+          $installLog = Join-Path $env:RUNNER_TEMP 'meshcommander-install.log'
+          $installer = Start-Process $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', "/LOG=$installLog" -Wait -PassThru
+          if ($installer.ExitCode -ne 0) { Get-Content $installLog; throw "Installer failed with exit code $($installer.ExitCode)." }
+          $appPath = Join-Path $env:LOCALAPPDATA 'Programs\MeshCommander Enhanced\MeshCommander.Enhanced.Windows.exe'
+          $app = Start-Process $appPath -PassThru
+          try {
+            $healthy = $false
+            for ($attempt = 0; $attempt -lt 30; $attempt++) {
+              Start-Sleep -Seconds 1
+              if ($app.HasExited) { break }
+              try {
+                $health = Invoke-RestMethod 'http://127.0.0.1:16990/healthz' -TimeoutSec 2
+                if ($health.name -eq 'MeshCommander Enhanced') { $healthy = $true; break }
+              } catch {}
+            }
+            if (-not $healthy) {
+              $log = Join-Path $env:LOCALAPPDATA 'MeshCommanderEnhanced\desktop.log'
+              if (Test-Path $log) { Get-Content $log }
+              throw 'Installed Windows client did not become healthy.'
+            }
+          } finally {
+            if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+            Get-Process MeshCommander.Server -ErrorAction SilentlyContinue | Stop-Process -Force
+          }
       - uses: actions/upload-artifact@v7
         with:
           name: meshcommander-enhanced-desktop-${{ matrix.rid }}
-          path: artifacts/meshcommander-enhanced-desktop-${{ matrix.rid }}.zip
+          path: |
+            artifacts/meshcommander-enhanced-desktop-${{ matrix.rid }}.zip
+            artifacts/meshcommander-enhanced-linux-x64.deb
+            artifacts/meshcommander-enhanced-macos-arm64.dmg
+            artifacts/meshcommander-enhanced-windows-x64-setup.exe
           if-no-files-found: error
 
   github-release:
@@ -97,4 +171,4 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" release-assets/*.zip --repo "${GITHUB_REPOSITORY}" --verify-tag --generate-notes --title "MeshCommander Enhanced ${GITHUB_REF_NAME}"
+        run: gh release create "${GITHUB_REF_NAME}" release-assets/* --repo "${GITHUB_REPOSITORY}" --verify-tag --generate-notes --title "MeshCommander Enhanced ${GITHUB_REF_NAME}"

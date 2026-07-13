@@ -6,6 +6,10 @@
     <AssemblyName>MeshCommander.Server</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.28" />
+  </ItemGroup>
+
   <Target Name="BuildWebAssets" BeforeTargets="BeforeBuild" Condition="'$(SkipWebBuild)' != 'true'">
     <Exec Command="node ../../tools/build-web.mjs" WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>

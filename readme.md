@@ -42,6 +42,20 @@ Then open `http://127.0.0.1:3000` and sign in with:
 
 ### Desktop
 
+Installers are published on the GitHub Releases page:
+
+- Windows x64: Inno Setup `.exe` (per-user install, Start Menu shortcut, clean upgrades/uninstall)
+- macOS Apple Silicon: native `.app` inside a drag-to-Applications `.dmg`
+- Linux x64: `.deb` package with application-menu integration
+
+Portable ZIP packages remain available for troubleshooting and managed deployment.
+
+On first desktop launch, MeshCommander Enhanced looks for the legacy MeshCommander Chromium profile and imports the saved computer list and compatible preferences. Existing Enhanced data is never overwritten. Desktop clients use the stable local origin `http://127.0.0.1:16990`, so settings persist across launches and upgrades.
+
+Unsigned community builds can still show Windows SmartScreen or macOS Gatekeeper warnings. Authenticode signing and Apple notarization require project signing credentials that are not stored in this repository.
+
+For development, the cross-platform shell can be built with:
+
 Cross-platform shell:
 
 ```powershell
@@ -64,6 +78,7 @@ The WinUI 3 build requires Visual Studio 2022 or Build Tools with Windows App SD
 | `MCE_ADMIN_TOKEN` | empty | Enables Basic auth for shared or container deployments. |
 | `MCE_ALLOWED_TARGETS` | `private` | Relay target allow list: `private`, `*`, exact host/IP, wildcard domains, or IPv4 CIDR. |
 | `MCE_ALLOW_UNTRUSTED_AMT_TLS` | `true` | Allows self-signed AMT TLS certificates. Set to `false` for strict certificate validation. |
+| `MCE_DESKTOP_URL` | `http://127.0.0.1:16990` | Stable loopback origin used by installed desktop clients. |
 
 ## Build And Test
 

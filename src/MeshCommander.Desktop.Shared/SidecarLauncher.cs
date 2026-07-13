@@ -1,13 +1,21 @@
 using System.Diagnostics;
+using System.Net.Http.Json;
 
 namespace MeshCommander.Desktop.Shared;
 
 public sealed class SidecarLauncher : IAsyncDisposable
 {
+    private static readonly Uri DesktopUri = new("http://127.0.0.1:16990");
+    private static readonly HttpClient HealthClient = new() { Timeout = TimeSpan.FromSeconds(2) };
     private Process? process;
 
     public async Task<Uri> StartAsync(CancellationToken cancellationToken = default)
     {
+        if (await IsHealthyAsync(cancellationToken))
+        {
+            return DesktopUri;
+        }
+
         var baseDirectory = AppContext.BaseDirectory;
         var serverDirectory = Path.Combine(baseDirectory, "server");
         var exePath = Path.Combine(serverDirectory, OperatingSystem.IsWindows() ? "MeshCommander.Server.exe" : "MeshCommander.Server");
@@ -16,11 +24,11 @@ public sealed class SidecarLauncher : IAsyncDisposable
         ProcessStartInfo startInfo;
         if (File.Exists(exePath))
         {
-            startInfo = new ProcessStartInfo(exePath, "--desktop");
+            startInfo = new ProcessStartInfo(exePath, "--desktop") { WorkingDirectory = serverDirectory };
         }
         else if (File.Exists(dllPath))
         {
-            startInfo = new ProcessStartInfo("dotnet", $"\"{dllPath}\" --desktop");
+            startInfo = new ProcessStartInfo("dotnet", $"\"{dllPath}\" --desktop") { WorkingDirectory = serverDirectory };
         }
         else
         {
@@ -34,6 +42,7 @@ public sealed class SidecarLauncher : IAsyncDisposable
         startInfo.RedirectStandardOutput = true;
         startInfo.RedirectStandardError = true;
         startInfo.CreateNoWindow = true;
+        startInfo.Environment["MCE_DESKTOP_URL"] = DesktopUri.ToString().TrimEnd('/');
 
         process = Process.Start(startInfo) ?? throw new InvalidOperationException("Unable to start MeshCommander server.");
 
@@ -50,13 +59,37 @@ public sealed class SidecarLauncher : IAsyncDisposable
 
             if (line.StartsWith("MCE_READY_URL=", StringComparison.Ordinal))
             {
-                return new Uri(line["MCE_READY_URL=".Length..].Trim());
+                return DesktopUri;
             }
+        }
+
+        if (await IsHealthyAsync(cancellationToken))
+        {
+            return DesktopUri;
         }
 
         var error = await process.StandardError.ReadToEndAsync(cancellationToken);
         throw new InvalidOperationException($"MeshCommander server did not start. {error}".Trim());
     }
+
+    private static async Task<bool> IsHealthyAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var health = await HealthClient.GetFromJsonAsync<HealthResponse>(new Uri(DesktopUri, "/healthz"), cancellationToken);
+            return string.Equals(health?.Name, "MeshCommander Enhanced", StringComparison.Ordinal);
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+        catch (TaskCanceledException)
+        {
+            return false;
+        }
+    }
+
+    private sealed record HealthResponse(string Name);
 
     public async ValueTask DisposeAsync()
     {
