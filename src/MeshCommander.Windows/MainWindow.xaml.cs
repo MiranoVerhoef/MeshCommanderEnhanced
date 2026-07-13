@@ -8,11 +8,16 @@ namespace MeshCommander.Windows;
 public sealed partial class MainWindow : Window
 {
     private readonly SidecarLauncher sidecar = new();
+    private readonly Microsoft.UI.Xaml.Controls.WebView2 browser = new()
+    {
+        Visibility = Visibility.Collapsed
+    };
     private bool initialized;
 
     public MainWindow()
     {
         InitializeComponent();
+        Root.Children.Insert(0, browser);
         Title = "MeshCommander Enhanced";
         Activated += OnActivated;
         Closed += OnClosed;
@@ -44,12 +49,12 @@ public sealed partial class MainWindow : Window
                 null,
                 userDataFolder,
                 new CoreWebView2EnvironmentOptions());
-            await Browser.EnsureCoreWebView2Async(environment);
+            await browser.EnsureCoreWebView2Async(environment);
 
-            Browser.CoreWebView2.ProcessFailed += (_, eventArgs) =>
+            browser.CoreWebView2.ProcessFailed += (_, eventArgs) =>
                 DesktopDiagnostics.Write($"WebView2 process failed: {eventArgs.ProcessFailedKind}.");
-            Browser.Source = url;
-            Browser.Visibility = Visibility.Visible;
+            browser.Source = url;
+            browser.Visibility = Visibility.Visible;
             StatusPanel.Visibility = Visibility.Collapsed;
             DesktopDiagnostics.Write("Desktop startup completed.");
         }

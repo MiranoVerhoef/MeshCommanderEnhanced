@@ -27,9 +27,11 @@ iconutil -c icns "${iconset}" -o "${app}/Contents/Resources/MeshCommanderEnhance
 chmod 0755 "${app}/Contents/MacOS/MeshCommanderEnhanced" \
   "${app}/Contents/Resources/app/MeshCommander.Enhanced.Desktop" \
   "${app}/Contents/Resources/app/server/MeshCommander.Server"
-while IFS= read -r binary; do
-  codesign --force --sign - "${binary}"
-done < <(find "${app}/Contents/Resources/app" -type f -print0 | xargs -0 file | awk -F: '/Mach-O/ {print $1}')
+while IFS= read -r -d '' binary; do
+  if file -b "${binary}" | grep -q 'Mach-O'; then
+    codesign --force --sign - "${binary}"
+  fi
+done < <(find "${app}/Contents/Resources/app" -type f -print0)
 codesign --force --sign - "${app}"
 cp -a "${app}" "${staging}/"
 ln -s /Applications "${staging}/Applications"

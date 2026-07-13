@@ -63,7 +63,7 @@ jobs:
         if: runner.os == 'Windows'
       - name: Install Linux packaging dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y imagemagick libgtk-3-0 libwebkit2gtk-4.1-0 xvfb
+        run: sudo apt-get update && sudo apt-get install -y imagemagick libgtk-3-0 libnotify4 libwebkit2gtk-4.1-0 xvfb
       - name: Publish desktop shell
         if: runner.os != 'Windows'
         run: dotnet publish ${{ matrix.project }} -c Release -r ${{ matrix.rid }} --self-contained true -o artifacts/app
