@@ -10,8 +10,9 @@ app="${output_dir}/MeshCommander Enhanced.app"
 staging="${output_dir}/dmg-staging"
 
 rm -rf "${app}" "${staging}"
-mkdir -p "${app}/Contents/MacOS" "${app}/Contents/Resources" "${staging}"
-cp -a "${publish_dir}/." "${app}/Contents/MacOS/"
+mkdir -p "${app}/Contents/MacOS" "${app}/Contents/Resources/app" "${staging}"
+cp -a "${publish_dir}/." "${app}/Contents/Resources/app/"
+cp "${script_dir}/MeshCommanderEnhanced" "${app}/Contents/MacOS/MeshCommanderEnhanced"
 sed "s/@VERSION@/${version}/g" "${script_dir}/Info.plist.in" > "${app}/Contents/Info.plist"
 
 iconset="${output_dir}/MeshCommanderEnhanced.iconset"
@@ -23,7 +24,12 @@ for size in 16 32 128 256 512; do
   sips -z "${double}" "${double}" "${output_dir}/icon-source.png" --out "${iconset}/icon_${size}x${size}@2x.png" >/dev/null
 done
 iconutil -c icns "${iconset}" -o "${app}/Contents/Resources/MeshCommanderEnhanced.icns"
-chmod 0755 "${app}/Contents/MacOS/MeshCommander.Enhanced.Desktop" "${app}/Contents/MacOS/server/MeshCommander.Server"
+chmod 0755 "${app}/Contents/MacOS/MeshCommanderEnhanced" \
+  "${app}/Contents/Resources/app/MeshCommander.Enhanced.Desktop" \
+  "${app}/Contents/Resources/app/server/MeshCommander.Server"
+while IFS= read -r binary; do
+  codesign --force --sign - "${binary}"
+done < <(find "${app}/Contents/Resources/app" -type f -print0 | xargs -0 file | awk -F: '/Mach-O/ {print $1}')
 codesign --force --sign - "${app}"
 cp -a "${app}" "${staging}/"
 ln -s /Applications "${staging}/Applications"
