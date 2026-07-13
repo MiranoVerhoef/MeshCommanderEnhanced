@@ -40,7 +40,7 @@ public sealed partial class MainWindow : Window
 
             var userDataFolder = Path.Combine(DesktopDiagnostics.DataDirectory, "WebView2");
             Directory.CreateDirectory(userDataFolder);
-            var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
+            var environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
             await Browser.EnsureCoreWebView2Async(environment);
 
             Browser.CoreWebView2.ProcessFailed += (_, eventArgs) =>

@@ -24,7 +24,7 @@ for size in 16 32 128 256 512; do
 done
 iconutil -c icns "${iconset}" -o "${app}/Contents/Resources/MeshCommanderEnhanced.icns"
 chmod 0755 "${app}/Contents/MacOS/MeshCommander.Enhanced.Desktop" "${app}/Contents/MacOS/server/MeshCommander.Server"
-codesign --force --deep --sign - "${app}"
+codesign --force --sign - "${app}"
 cp -a "${app}" "${staging}/"
 ln -s /Applications "${staging}/Applications"
 hdiutil create -volname "MeshCommander Enhanced" -srcfolder "${staging}" -ov -format UDZO \

@@ -39,6 +39,7 @@ jobs:
   desktop:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -117,7 +118,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          codesign --verify --deep --strict "artifacts/MeshCommander Enhanced.app"
+          codesign --verify --strict "artifacts/MeshCommander Enhanced.app"
           hdiutil verify artifacts/meshcommander-enhanced-macos-arm64.dmg
       - name: Smoke-test Windows installer
         if: runner.os == 'Windows'
