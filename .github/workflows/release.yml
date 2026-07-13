@@ -16,11 +16,11 @@ jobs:
       matrix:
         rid: [linux-x64, linux-arm64, osx-x64, osx-arm64, win-x64, win-arm64]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
       - name: Publish server
@@ -30,7 +30,7 @@ jobs:
         run: |
           cd artifacts/server-${{ matrix.rid }}
           zip -r ../meshcommander-enhanced-server-${{ matrix.rid }}.zip .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: meshcommander-enhanced-server-${{ matrix.rid }}
           path: artifacts/meshcommander-enhanced-server-${{ matrix.rid }}.zip
@@ -51,14 +51,14 @@ jobs:
             rid: win-x64
             project: src/MeshCommander.Windows/MeshCommander.Windows.csproj
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
-      - uses: microsoft/setup-msbuild@v2
+      - uses: microsoft/setup-msbuild@v3
         if: runner.os == 'Windows'
       - name: Publish desktop shell
         if: runner.os != 'Windows'
@@ -78,7 +78,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/meshcommander-enhanced-desktop-${{ matrix.rid }}.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: meshcommander-enhanced-desktop-${{ matrix.rid }}
           path: artifacts/meshcommander-enhanced-desktop-${{ matrix.rid }}.zip
@@ -89,7 +89,7 @@ jobs:
     needs: [server, desktop]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: meshcommander-enhanced-*
           path: release-assets
