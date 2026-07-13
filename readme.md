@@ -1,65 +1,83 @@
-MeshCommander
-=============
+# MeshCommander Enhanced
 
-*** Intel has discontinued support for this tool. Please contact Intel support for alternatives ***
+MeshCommander Enhanced is a modernized continuation of Ylian Saint-Hilaire's MeshCommander codebase for Intel AMT management.
 
-MeshCommander is a Intel(R) Active Management Technology (Intel(R) AMT) remote management tool. It's feature rich and includes a built-in remote desktop viewer for Hardware-KVM, a Serial-over-LAN terminal, IDER-Redirection support and much more. MeshCommander is built on web technologies and runs on many plaforms. In addition to being available as a stand-alone tool, MeshCommander was built to be very space efficient to that it can be uploaded into Intel AMT flash space to have it served directly from the Intel AMT web server. There are different ways to install and use MeshCommander.
+This fork keeps the proven browser AMT, WS-Man, terminal, KVM, SOL, and IDER client code, then wraps it with:
 
-Windows Installation
---------------------
+- ASP.NET Core 8 static hosting and websocket-to-AMT relay
+- WinUI 3 desktop shell for Windows
+- Photino-based desktop shell for macOS and Linux
+- Docker and Compose deployment
+- GitHub Actions CI and release artifacts
+- Modernized compatibility UI styling
 
-On Windows, simply go to [MeshCommander.com/meshcommander](https://www.meshcommander.com/meshcommander) and download and install the MSI installer.
+The intent is compatibility first: keep the original AMT behavior working while replacing the old NodeWebkit / ASP.NET `webrelay.ashx` hosting model with maintained tooling.
 
+## Quick Start
 
-NPM Installation
------------------
+### Local Web Server
 
-On Windows, Linux and MacOS, you can install MeshCommander from the Node Package Manager (NPM). Once you have NodeJS installed on your computer, you can do:
-
-```
-	mkdir meshcommander
-	cd meshcommander
-	npm install meshcommander
-	node node_modules\meshcommander
-```
-
-This will start a small web server on port 3000 that you can access using a browser to use MeshCommander at http://127.0.0.1:3000.
-
-
-Firmware Installation
----------------------
-
-For Intel AMT 11.6 and higher, you can load MeshCommander directly into Intel AMT storage flash space. Depending on the activation mode, MeshCommander can replace the default Intel AMT web page on HTTP/16992 or HTTPS/16993 making the built-in web site much more capable. On Windows, you can download the [firmware installer here](https://www.meshcommander.com/meshcommander/firmware). On other platforms, you can use [MeshCMD](https://www.meshcommander.com/meshcommander/meshcmd) to load MeshCommander into Intel AMT.
-
-
-MeshCMD Installation
---------------------
-
-On Windows and Linux, you can download [MeshCMD](https://www.meshcommander.com/meshcommander/meshcmd), a command line tool for performing many Intel AMT management operations. Included in that tool is MeshCommander. You can start it up by running:
-
-```
-	meshcmd meshcommander
+```powershell
+npm run build:web
+dotnet run --project src/MeshCommander.Server
 ```
 
-Like the NPM version, this will start an HTTP web server on port 3000. You can then access http://127.0.0.1:3000 from any browser to access MeshCommander.
+Open `http://127.0.0.1:3000`.
 
+By default, the relay only allows private, loopback, and unique-local AMT targets. Set `MCE_ALLOWED_TARGETS` to a comma-separated allow list if your management network is different.
 
-Compiling MeshCommander
------------------------
+### Docker
 
-MeshCommander is a set of HTML web pages that can be used in many different ways. You can run it in a browser or in nw.js, you can run it as a stand-alone application or as a web application served from Intel AMT. Because of all the different roles MeshCommander can take and the unique requirement of being able to fit within 64k limit of Intel AMT file storage, MeshCommander has to be "compiled" using the [WebSite Compiler](https://meshcentral.com/tools/websitecompiler.zip) tool that currently only runs on Windows. WebSite Compiler will merge all of the html, css and js files into a single big file, it will run a pre-processor to remove portions that are not needed and then minify and compress the output as needed.
+Set a real token before exposing the service:
 
+```powershell
+$env:MCE_ADMIN_TOKEN = "replace-with-a-long-random-token"
+docker compose up --build
+```
 
-Tutorials
----------
+Then open `http://127.0.0.1:3000` and sign in with:
 
-There are plenty of [tutorial videos here](https://www.meshcommander.com/meshcommander/tutorials).
+- user: `meshcommander`
+- password: your `MCE_ADMIN_TOKEN`
 
-Introduction to MeshCommander.  
-[![MeshCommander - Introduction](https://img.youtube.com/vi/k7xVkZSVY0E/mqdefault.jpg)](https://www.youtube.com/watch?v=k7xVkZSVY0E)
+### Desktop
 
+Cross-platform shell:
 
-License
--------
+```powershell
+dotnet build src/MeshCommander.Desktop/MeshCommander.Desktop.csproj
+```
 
-This software is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+Windows WinUI 3 shell:
+
+```powershell
+dotnet build src/MeshCommander.Windows/MeshCommander.Windows.csproj -c Release
+```
+
+The WinUI 3 build requires Visual Studio 2022 or Build Tools with Windows App SDK / Windows application packaging tasks installed. The plain .NET SDK alone is not enough.
+
+## Configuration
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ASPNETCORE_URLS` | `http://127.0.0.1:3000` | HTTP bind address. Binding to `0.0.0.0` requires `MCE_ADMIN_TOKEN`. |
+| `MCE_ADMIN_TOKEN` | empty | Enables Basic auth for shared or container deployments. |
+| `MCE_ALLOWED_TARGETS` | `private` | Relay target allow list: `private`, `*`, exact host/IP, wildcard domains, or IPv4 CIDR. |
+| `MCE_ALLOW_UNTRUSTED_AMT_TLS` | `true` | Allows self-signed AMT TLS certificates. Set to `false` for strict certificate validation. |
+
+## Build And Test
+
+```powershell
+npm run test:web
+npm run build:web
+dotnet test src/MeshCommander.Server.Tests/MeshCommander.Server.Tests.csproj
+docker build -t meshcommander-enhanced:local .
+```
+
+## Status
+
+This is a compatibility-first modernization. The inherited AMT browser modules are still the upstream MeshCommander implementation. The host, relay, deployment model, shell projects, and styling are new. Hardware-level validation against multiple Intel AMT firmware generations is still required before treating this as a production replacement.
+
+## License
+
+MeshCommander Enhanced remains under the Apache License 2.0. Original MeshCommander source is copyright Ylian Saint-Hilaire and contributors.
