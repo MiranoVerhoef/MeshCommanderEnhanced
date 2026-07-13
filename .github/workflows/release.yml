@@ -129,24 +129,25 @@ jobs:
           $installer = Start-Process $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', "/LOG=$installLog" -Wait -PassThru
           if ($installer.ExitCode -ne 0) { Get-Content $installLog; throw "Installer failed with exit code $($installer.ExitCode)." }
           $appPath = Join-Path $env:LOCALAPPDATA 'Programs\MeshCommander Enhanced\MeshCommander.Enhanced.Windows.exe'
+          $desktopLog = Join-Path $env:LOCALAPPDATA 'MeshCommanderEnhanced\desktop.log'
           $app = Start-Process $appPath -PassThru
           try {
             $healthy = $false
             for ($attempt = 0; $attempt -lt 30; $attempt++) {
               Start-Sleep -Seconds 1
-              if ($app.HasExited) { break }
               try {
                 $health = Invoke-RestMethod 'http://127.0.0.1:16990/healthz' -TimeoutSec 2
-                if ($health.name -eq 'MeshCommander Enhanced') { $healthy = $true; break }
+                $uiReady = (Test-Path $desktopLog) -and (Select-String -Path $desktopLog -Pattern 'Desktop startup completed.' -Quiet)
+                if (($health.name -eq 'MeshCommander Enhanced') -and $uiReady) { $healthy = $true; break }
               } catch {}
             }
             if (-not $healthy) {
-              $log = Join-Path $env:LOCALAPPDATA 'MeshCommanderEnhanced\desktop.log'
-              if (Test-Path $log) { Get-Content $log }
-              throw 'Installed Windows client did not become healthy.'
+              if (Test-Path $desktopLog) { Get-Content $desktopLog }
+              throw 'Installed Windows client did not finish native UI startup.'
             }
           } finally {
             if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+            Get-Process 'MeshCommander.Enhanced.Windows' -ErrorAction SilentlyContinue | Stop-Process -Force
             Get-Process MeshCommander.Server -ErrorAction SilentlyContinue | Stop-Process -Force
           }
       - uses: actions/upload-artifact@v7
