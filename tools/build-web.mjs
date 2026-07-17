@@ -107,7 +107,8 @@ export function processTemplate(source, features = FEATURES, options = {}) {
     .replace(
       '</head>',
       '    <meta name="viewport" content="width=device-width, initial-scale=1" />\n' +
-        '    <meta name="theme-color" content="#0b1220" />\n' +
+      '    <meta name="theme-color" content="#0b1220" />\n' +
+        '    <script src="desktop-bootstrap.js"></script>\n' +
         '    <link rel="stylesheet" href="styles-enhanced.css" />\n' +
         '</head>',
     );
@@ -153,6 +154,10 @@ export async function buildWebAssets(
   await cp(
     path.join(repositoryRoot, 'modern', 'web', 'styles-enhanced.css'),
     path.join(resolvedOutput, 'styles-enhanced.css'),
+  );
+  await cp(
+    path.join(repositoryRoot, 'modern', 'web', 'desktop-bootstrap.js'),
+    path.join(resolvedOutput, 'desktop-bootstrap.js'),
   );
 
   await writeFile(

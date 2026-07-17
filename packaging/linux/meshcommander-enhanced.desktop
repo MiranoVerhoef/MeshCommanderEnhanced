@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=MeshCommander Enhanced
+Comment=Intel AMT remote management console
+Exec=meshcommander-enhanced
+Icon=meshcommander-enhanced
+Terminal=false
+Categories=Network;RemoteAccess;System;
+StartupNotify=true

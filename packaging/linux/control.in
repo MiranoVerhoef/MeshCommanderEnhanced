@@ -1,0 +1,11 @@
+Package: meshcommander-enhanced
+Version: @VERSION@
+Section: net
+Priority: optional
+Architecture: amd64
+Maintainer: MiranoVerhoef
+Depends: libgtk-3-0, libnotify4, libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37
+Homepage: https://github.com/MiranoVerhoef/MeshCommanderEnhanced
+Description: Native desktop client for Intel AMT remote management
+ MeshCommander Enhanced provides a local desktop shell and relay for
+ managing Intel Active Management Technology devices.

@@ -1,15 +1,20 @@
 using MeshCommander.Server.Relay;
 using MeshCommander.Server.Security;
+using MeshCommander.Server.Migration;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
 
 var desktopMode = args.Contains("--desktop", StringComparer.OrdinalIgnoreCase);
 if (desktopMode)
 {
-    builder.WebHost.UseUrls("http://127.0.0.1:0");
+    builder.WebHost.UseUrls(Environment.GetEnvironmentVariable("MCE_DESKTOP_URL") ?? "http://127.0.0.1:16990");
 }
 else if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")) &&
          string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DOTNET_URLS")))
@@ -19,6 +24,7 @@ else if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCOR
 
 builder.Services.AddSingleton<TargetPolicy>();
 builder.Services.AddSingleton<WebSocketTcpRelay>();
+builder.Services.AddSingleton<LegacyConfigurationImporter>();
 
 var app = builder.Build();
 
@@ -46,6 +52,11 @@ app.MapGet("/healthz", () => Results.Ok(new
     name = "MeshCommander Enhanced",
     utc = DateTimeOffset.UtcNow
 }));
+
+if (desktopMode)
+{
+    app.MapGet("/api/desktop/bootstrap", (LegacyConfigurationImporter importer) => Results.Ok(importer.Import()));
+}
 
 app.Map("/webrelay.ashx", async context =>
 {

@@ -1,0 +1,3 @@
+#!/bin/sh
+contents="$(cd "$(dirname "$0")/.." && pwd)"
+exec "${contents}/Resources/app/MeshCommander.Enhanced.Desktop" "$@"
